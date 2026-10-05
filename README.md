@@ -171,6 +171,11 @@ côté serveur, un espace pastoral ou une nouvelle version du questionnaire en r
    (Hébreux 4:12 abrégé, Ézéchiel 36:26, Psaumes 51:10, 1 Jean 1:9, 2 Timothée 3:5, Éphésiens 6:2-3).
    Aucun autre verset n'a été ajouté.
 5. Le document utilise le vouvoiement ; l'interface tutoie (« Ton score »), comme demandé. Les citations du document restent inchangées.
+6. **Grammaire corrigée (version 1.1.0 du questionnaire)** — le sens et la référence sont inchangés :
+   - **Q58** : « Manque-t-il de maîtrise de moi-même dans mes désirs corporels ? » devient
+     « Est-ce que je manque de maîtrise de moi-même dans mes désirs corporels ? »
+   - **Q63** : « Me considère-je supérieur aux autres dans mon for intérieur ? » devient
+     « Est-ce que je me considère supérieur aux autres dans mon for intérieur ? »
 
 ### Questions à faire valider par un pasteur
 
@@ -184,9 +189,6 @@ côté serveur, un espace pastoral ou une nouvelle version du questionnaire en r
   l'accompagnement proposé méritent une attention pastorale.
 - **Q43** : référence « 1 Tim 1:2 (esprit du texte) » (référence indirecte) ; **Q42** et **Q43** utilisent
   1 Tim 1:2 pour la paternité spirituelle et biologique.
-- **Q58** « Manque-t-il de maîtrise de moi-même… » et **Q63** « Me considère-je… » : la grammaire est
-  inhabituelle (forme proposée : « Est-ce que je manque de maîtrise de moi-même… » et
-  « Est-ce que je me considère… »). Elles sont gardées telles quelles.
 - **Q47** (dîme, Malachie 3:8-10) : le sujet est propre à certaines traditions d'Église.
 - Les catégories 3, 4, 7, 8, 9 et 10 n'ont pas de référence globale dans le document (seulement par question).
 

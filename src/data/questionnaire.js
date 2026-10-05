@@ -3,8 +3,10 @@
  *
  * Source : document Word « Diagnostique du coeur.docx ».
  * Les intitulés des questions et les références sont repris mot pour mot.
- * Seules modifications : les mentions éditoriales « (nouvelle rubrique) » et
- * « (enrichie) » ont été retirées des titres de catégories (voir README).
+ * Seules modifications (voir README) :
+ *  - les mentions éditoriales « (nouvelle rubrique) » et « (enrichie) » ont
+ *    été retirées des titres de catégories ;
+ *  - la grammaire des questions 58 et 63 a été corrigée (version 1.1.0).
  *
  * Pour publier une nouvelle version du questionnaire, dupliquer ce fichier,
  * incrémenter `version` et adapter les données : la logique de calcul lit
@@ -173,19 +175,21 @@ export const QUESTIONS = [
   // Catégorie 9 — Excès et dérèglements corporels
   q(56, 9, "Est-ce que je consomme l'alcool ou d'autres substances de manière excessive ?", 'Gal 5:21 ; 1 Cor 6:10'),
   q(57, 9, "Mes habitudes relèvent-elles de l'excès incontrôlé ?", 'Gal 5:21'),
-  q(58, 9, 'Manque-t-il de maîtrise de moi-même dans mes désirs corporels ?', '2 Tim 3:3'),
+  // Document : « Manque-t-il de maîtrise de moi-même dans mes désirs corporels ? »
+  q(58, 9, 'Est-ce que je manque de maîtrise de moi-même dans mes désirs corporels ?', '2 Tim 3:3'),
 
   // Catégorie 10 — Caractère des « temps difficiles » (égocentrisme)
   q(59, 10, 'Suis-je centré sur moi-même avant toute autre considération ?', '2 Tim 3:2'),
   q(60, 10, 'Ai-je tendance à me vanter ou à me mettre en avant ?', '2 Tim 3:2'),
   q(61, 10, 'Est-ce que je méprise ce qui est bon et vertueux ?', '2 Tim 3:3'),
   q(62, 10, "Suis-je impulsif, agissant sous le coup de l'émotion ?", '2 Tim 3:4'),
-  q(63, 10, 'Me considère-je supérieur aux autres dans mon for intérieur ?', '2 Tim 3:4'),
+  // Document : « Me considère-je supérieur aux autres dans mon for intérieur ? »
+  q(63, 10, 'Est-ce que je me considère supérieur aux autres dans mon for intérieur ?', '2 Tim 3:4'),
 ]
 
 export const QUESTIONNAIRE = {
   id: 'diagnostic-du-coeur',
-  version: '1.0.0',
+  version: '1.1.0',
   titre: 'Diagnostic du cœur',
   source: '« Diagnostique du coeur » (document Word fourni)',
   echelle: ECHELLE,
