@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AVERTISSEMENT,
   CONFIDENTIALITE,
@@ -12,8 +12,42 @@ import { arrondir } from '../scoring/scoring.js'
 import { stockageDisponible } from '../storage/historique.js'
 import RadarProfil from './RadarProfil.jsx'
 import Comparaison from './Comparaison.jsx'
+import Icone from './Icone.jsx'
 
 const pct = (valeur) => `${arrondir(valeur)} %`
+const QUESTIONS_VISIBLES = 3
+
+const SECTIONS = [
+  { id: 'profil', titre: 'Profil' },
+  { id: 'priorites', titre: 'Priorités' },
+  { id: 'attention', titre: "Points d'attention" },
+  { id: 'suite', titre: 'Et maintenant ?' },
+  { id: 'references', titre: 'Références' },
+]
+
+function QuestionsMarquantes({ questions }) {
+  const ligne = (question) => (
+    <li key={question.id}>
+      <span className="qm-numero">{question.id}.</span> {question.question}{' '}
+      <span className="reference">({question.referenceBiblique})</span>
+    </li>
+  )
+  const visibles = questions.slice(0, QUESTIONS_VISIBLES)
+  const autres = questions.slice(QUESTIONS_VISIBLES)
+  return (
+    <>
+      <ul className="questions-marquantes">{visibles.map(ligne)}</ul>
+      {autres.length > 0 && (
+        <details className="plus">
+          <summary>
+            Voir {autres.length === 1 ? "l'autre question" : `les ${autres.length} autres questions`}
+          </summary>
+          <ul className="questions-marquantes">{autres.map(ligne)}</ul>
+        </details>
+      )}
+    </>
+  )
+}
 
 export default function Resultats({ bilan, historique, idEnregistre, onEnregistrer, onRecommencer, onRevoir }) {
   const { total, maxGlobal, pourcentageGlobal, plage, categories, priorites, pointsAttention } = bilan
@@ -26,6 +60,13 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
 
   const precedent = historique.find((entree) => entree.id !== idEnregistre)
 
+  // À l'impression, déplier les listes de questions repliées.
+  useEffect(() => {
+    const deplier = () => document.querySelectorAll('.resultats details.plus').forEach((d) => (d.open = true))
+    window.addEventListener('beforeprint', deplier)
+    return () => window.removeEventListener('beforeprint', deplier)
+  }, [])
+
   const enregistrer = () => setEchecEnregistrement(!onEnregistrer())
 
   const recommencer = () => {
@@ -34,27 +75,46 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
 
   return (
     <section className="ecran resultats" aria-labelledby="titre-resultats">
-      <p className="surtitre">Ton bilan</p>
-
-      {/* Score global */}
+      {/* Synthèse */}
       <article className={`carte score-global plage-${plage.id}`}>
-        <h1 id="titre-resultats" className="score-titre">
-          Ton score : {total} / {maxGlobal} — {pct(pourcentageGlobal)}
-        </h1>
-        <div className="jauge" aria-hidden="true">
-          {PLAGES.map((p) => (
-            <span key={p.id} className={`jauge-segment plage-${p.id}`} />
-          ))}
-          <span className="jauge-curseur" style={{ left: `${(total / maxGlobal) * 100}%` }} />
+        <div className="score-grille">
+          <div className="score-chiffres">
+            <p className="surtitre">Ton bilan</p>
+            <h1 id="titre-resultats" className="score-titre">
+              <span className="score-libelle">Ton score : </span>
+              <span className="score-nombre">{total}</span>
+              <span className="score-max"> / {maxGlobal}</span>
+              <span className="score-pct"> — {pct(pourcentageGlobal)}</span>
+            </h1>
+          </div>
+          <div className="score-plage">
+            <p className="score-plage-texte">
+              Selon la grille du document, ce total se situe dans la plage {plage.min}–{plage.max}, intitulée :
+            </p>
+            <p className="badge-plage">
+              <span aria-hidden="true">{plage.emoji}</span>{' '}
+              <span className="badge-couleur">{plage.couleur}</span> — <strong>{plage.classification}</strong>
+              {plage.reference && <span className="reference"> ({plage.reference})</span>}
+            </p>
+          </div>
         </div>
-        <p className="score-plage-texte">
-          Selon la grille du document, ce total se situe dans la plage {plage.min}–{plage.max}, intitulée :
-        </p>
-        <p className="badge-plage">
-          <span aria-hidden="true">{plage.emoji}</span> <span className="badge-couleur">{plage.couleur}</span>{' '}
-          — <strong>{plage.classification}</strong>
-          {plage.reference && <span className="reference"> ({plage.reference})</span>}
-        </p>
+
+        <div className="jauge" aria-hidden="true">
+          <div className="jauge-barre">
+            {PLAGES.map((p) => (
+              <span key={p.id} className={`jauge-segment plage-${p.id}${p.id === plage.id ? ' actuel' : ''}`} />
+            ))}
+            <span className="jauge-curseur" style={{ left: `${(total / maxGlobal) * 100}%` }} />
+          </div>
+          <div className="jauge-graduations">
+            {PLAGES.map((p) => (
+              <span key={p.id} className={p.id === plage.id ? 'actuel' : ''}>
+                {p.min}–{p.max}
+              </span>
+            ))}
+          </div>
+        </div>
+
         <div className="citation-document">
           <p className="etiquette-source">Signification donnée par le document</p>
           <p>{plage.signification}</p>
@@ -71,8 +131,16 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
         </p>
       </aside>
 
+      <nav className="sommaire-resultats no-print" aria-label="Sections du bilan">
+        {SECTIONS.map((section) => (
+          <a key={section.id} href={`#${section.id}`}>
+            {section.titre}
+          </a>
+        ))}
+      </nav>
+
       {/* Profil par catégorie */}
-      <article className="carte">
+      <article className="carte" id="profil">
         <h2>Profil des 10 catégories</h2>
         <p className="note">{TEXTES_DOCUMENT.lectureProfil}</p>
         <div className="profil">
@@ -132,39 +200,39 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
       </article>
 
       {/* Priorités */}
-      <article className="carte">
+      <article className="carte" id="priorites">
         <h2>Les 3 catégories qui ressortent le plus</h2>
         {priorites.length === 0 ? (
           <p>Aucune catégorie ne ressort : toutes tes réponses sont à 0.</p>
         ) : (
           <ol className="priorites">
-            {priorites.map((resultat) => (
+            {priorites.map((resultat, rang) => (
               <li key={resultat.categorie.id} className={`priorite plage-${resultat.niveau.plage.id}`}>
-                <div className="priorite-entete">
-                  <h3>
-                    {resultat.categorie.id}. {resultat.categorie.titre}
-                  </h3>
-                  <p className="priorite-chiffres">
-                    {resultat.score} / {resultat.max} — {pct(resultat.pourcentage)} · {resultat.niveau.libelle}
-                  </p>
-                </div>
+                <p className="priorite-rang" aria-hidden="true">
+                  {rang + 1}
+                </p>
+                <h3>
+                  {resultat.categorie.id}. {resultat.categorie.titre}
+                </h3>
+                <p className="priorite-chiffres">
+                  {resultat.score} / {resultat.max} — {pct(resultat.pourcentage)}{' '}
+                  <span className={`niveau plage-${resultat.niveau.plage.id}`}>· {resultat.niveau.libelle}</span>
+                </p>
+                <span className="barre" aria-hidden="true">
+                  <span
+                    className={`plage-${resultat.niveau.plage.id}`}
+                    style={{ width: `${resultat.pourcentage}%` }}
+                  />
+                </span>
                 {resultat.categorie.references && (
-                  <p className="reference">Références de la catégorie : {resultat.categorie.references}</p>
+                  <p className="reference">{resultat.categorie.references}</p>
                 )}
                 {resultat.questionsMarquantes.length > 0 && (
                   <>
                     <p className="etiquette-source">
-                      Question{resultat.questionsMarquantes.length > 1 ? 's' : ''} où ta note est la plus haute (
-                      {resultat.questionsMarquantes[0].note}/5) :
+                      Ta note la plus haute ({resultat.questionsMarquantes[0].note}/5) :
                     </p>
-                    <ul className="questions-marquantes">
-                      {resultat.questionsMarquantes.map((question) => (
-                        <li key={question.id}>
-                          {question.id}. {question.question}{' '}
-                          <span className="reference">({question.referenceBiblique})</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <QuestionsMarquantes questions={resultat.questionsMarquantes} />
                   </>
                 )}
               </li>
@@ -174,7 +242,7 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
       </article>
 
       {/* Points d'attention */}
-      <article className="carte">
+      <article className="carte" id="attention">
         <h2>Points d'attention</h2>
         <p className="note">
           Une catégorie est signalée lorsque son pourcentage atteint {REGLES_ATTENTION.seuilAbsolu} % ou
@@ -186,15 +254,21 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
         ) : (
           <ul className="attention-liste">
             {pointsAttention.map((resultat) => (
-              <li key={resultat.categorie.id}>
+              <li key={resultat.categorie.id} className={`plage-${resultat.niveau.plage.id}`}>
                 <strong>
                   {resultat.categorie.id}. {resultat.categorie.titre}
-                </strong>{' '}
-                — {pct(resultat.pourcentage)} ({resultat.niveau.libelle})
+                </strong>
+                <span className="attention-chiffres">
+                  {pct(resultat.pourcentage)} · {resultat.niveau.libelle}
+                </span>
                 <span className="motifs">
-                  {resultat.motifs.includes('niveau') && ` · atteint ${REGLES_ATTENTION.seuilAbsolu} %`}
-                  {resultat.motifs.includes('ecart') &&
-                    ` · ${arrondir(resultat.pourcentage - pourcentageGlobal)} points au-dessus de ton pourcentage global`}
+                  {[
+                    resultat.motifs.includes('niveau') && `atteint ${REGLES_ATTENTION.seuilAbsolu} %`,
+                    resultat.motifs.includes('ecart') &&
+                      `${arrondir(resultat.pourcentage - pourcentageGlobal)} points au-dessus de ton pourcentage global`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </span>
               </li>
             ))}
@@ -211,34 +285,42 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
       </article>
 
       {/* Recommandations */}
-      <article className="carte">
+      <article className="carte" id="suite">
         <h2>Et maintenant ?</h2>
-        <div className="citation-document">
-          <p className="etiquette-source">Ce que propose le document, quel que soit le score</p>
-          <p>{TEXTES_DOCUMENT.apresDiagnostic}</p>
-          {TEXTES_DOCUMENT.versetsRemede.map((verset) => (
-            <blockquote key={verset.reference}>
-              « {verset.texte} » <cite>— {verset.reference}</cite>
-            </blockquote>
-          ))}
-          <p>{TEXTES_DOCUMENT.demarche}</p>
-          <p>{TEXTES_DOCUMENT.rappelFinal}</p>
-        </div>
-
-        <div className="pistes">
-          <p className="etiquette-source">Pistes proposées par l'application (ne figurent pas dans le document)</p>
-          <ul>
-            {PISTES_APPLICATION.commun.map((piste) => (
-              <li key={piste}>{piste}</li>
+        <div className="suite-grille">
+          <div className="versets">
+            <p className="etiquette-source">
+              <Icone nom="colombe" taille={18} /> Ce que propose le document, quel que soit le score
+            </p>
+            <p>{TEXTES_DOCUMENT.apresDiagnostic}</p>
+            {TEXTES_DOCUMENT.versetsRemede.map((verset) => (
+              <blockquote key={verset.reference}>
+                <p>« {verset.texte} »</p>
+                <cite>{verset.reference}</cite>
+              </blockquote>
             ))}
-            {plagesElevees && PISTES_APPLICATION.plagesElevees.map((piste) => <li key={piste}>{piste}</li>)}
-          </ul>
+          </div>
+          <div className="demarche">
+            <p>{TEXTES_DOCUMENT.demarche}</p>
+            <p>{TEXTES_DOCUMENT.rappelFinal}</p>
+            <div className="pistes">
+              <p className="etiquette-source">Pistes proposées par l'application (ne figurent pas dans le document)</p>
+              <ul>
+                {PISTES_APPLICATION.commun.map((piste) => (
+                  <li key={piste}>{piste}</li>
+                ))}
+                {plagesElevees && PISTES_APPLICATION.plagesElevees.map((piste) => <li key={piste}>{piste}</li>)}
+              </ul>
+            </div>
+          </div>
         </div>
       </article>
 
       {/* Références */}
-      <article className="carte">
-        <h2>Références bibliques à relire</h2>
+      <article className="carte" id="references">
+        <h2>
+          <Icone nom="livre" /> Références bibliques à relire
+        </h2>
         <p className="note">Toutes ces références sont celles indiquées dans le document.</p>
         <dl className="references-liste">
           {plage.reference && (
@@ -276,7 +358,10 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
         <h2 className="h3">Garder une trace ?</h2>
         <p className="note">{CONFIDENTIALITE}</p>
         {idEnregistre ? (
-          <p role="status">✓ Bilan enregistré sur cet appareil (sous-totaux par catégorie uniquement).</p>
+          <p role="status" className="confirmation">
+            <Icone nom="coche" taille={18} /> Bilan enregistré sur cet appareil (sous-totaux par catégorie
+            uniquement).
+          </p>
         ) : (
           stockageDisponible() && (
             <button type="button" className="bouton" onClick={enregistrer}>
@@ -298,7 +383,10 @@ export default function Resultats({ bilan, historique, idEnregistre, onEnregistr
         </div>
       </article>
 
-      <p className="avertissement-final">{AVERTISSEMENT}</p>
+      <p className="avertissement-final">
+        Rappel : ce bilan est un outil d'auto-examen spirituel fondé sur le questionnaire « Diagnostique du
+        coeur ». Ce n'est pas un diagnostic médical, psychologique ou psychiatrique.
+      </p>
     </section>
   )
 }

@@ -66,13 +66,16 @@ export default function App() {
 
   return (
     <div className="app">
+      <a className="lien-evitement" href="#contenu">
+        Aller au contenu
+      </a>
       <header className="entete">
         <button type="button" className="entete-titre" onClick={() => setEcran('accueil')}>
           <span aria-hidden="true">♡</span> {QUESTIONNAIRE.titre}
         </button>
       </header>
 
-      <main className="contenu" id="contenu">
+      <main className={`contenu contenu-${ecran}`} id="contenu" tabIndex={-1}>
         {ecran === 'accueil' && (
           <Accueil
             enCours={Object.keys(reponses).length > 0}
